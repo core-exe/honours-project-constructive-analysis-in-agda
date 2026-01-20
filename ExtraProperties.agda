@@ -8,7 +8,7 @@ open import Data.Bool.Base using (Bool; if_then_else_)
 open import Function.Base using (_∘_)
 open import Data.Integer.Base as ℤ using (ℤ; +_; +0; +[1+_]; -[1+_])
 import Data.Integer.Properties as ℤP
-open import Data.Integer.DivMod as ℤD hiding (_/_; _divℕ_; _modℕ_) renaming (_/ℕ_ to _divℕ_; _%ℕ_ to _modℕ_)
+open import Data.Integer.DivMod as ℤD hiding (_/_)
 open import Data.Nat as ℕ using (ℕ; zero; suc) renaming (NonZero to _≢0)
 open import Data.Nat.Properties as ℕP using (≤-step)
 import Data.Nat.DivMod as ℕD
@@ -58,7 +58,7 @@ p≤∣p∣ (mkℚᵘ (-[1+_] n) denominator-2) = ℚ.*≤* ℤ.-≤+
 
 archimedean-ℚ : ∀ p r -> ℚ.Positive p -> ∃ λ (N : ℕ) -> r ℚ.< ((+ N) ℤ.* ↥ p) / (↧ₙ p)
 archimedean-ℚ (mkℚᵘ +[1+ g ] q-1) (mkℚᵘ u v-1) posp = let p = suc g; q = suc q-1; v = suc v-1
-                                                            ; r = (u ℤ.* + q) modℕ (p ℕ.* v); t = (u ℤ.* + q) divℕ (p ℕ.* v) in
+                                                            ; r = (u ℤ.* + q) %ℕ (p ℕ.* v); t = (u ℤ.* + q) /ℕ (p ℕ.* v) in
                                                       suc ℤ.∣ t ∣ , ℚ.*<* (begin-strict
   u ℤ.* + q                           ≡⟨ a≡a%ℕn+[a/ℕn]*n (u ℤ.* + q) (p ℕ.* v) ⟩
   + r ℤ.+ t ℤ.* (+ p ℤ.* + v)         <⟨ ℤP.+-monoˡ-< (t ℤ.* (+ p ℤ.* + v)) (ℤ.+<+ (n%d<d (u ℤ.* + q) (+ p ℤ.* + v))) ⟩
@@ -140,22 +140,22 @@ p<q⇒0<q-p p q p<q = begin-strict
 
 least-ℤ>ℚ : ∀ (p : ℚᵘ) -> ∃ λ (K : ℤ) ->
             p ℚ.< K / 1 × ∀ (n : ℤ) -> p ℚ.< n / 1 -> K ℤ.≤ n
-least-ℤ>ℚ p/q = let p = ↥ p/q; q = ↧ₙ p/q; r = p modℕ q; t = p divℕ q in + 1 ℤ.+ t , greater , least
+least-ℤ>ℚ p/q = let p = ↥ p/q; q = ↧ₙ p/q; r = p %ℕ q; t = p /ℕ q in + 1 ℤ.+ t , greater , least
   where
     open ℤP.≤-Reasoning
     open ℤ-Solver
-    greater : p/q ℚ.< (+ 1 ℤ.+ (↥ p/q divℕ ↧ₙ p/q)) / 1
-    greater = let p = ↥ p/q; q = ↧ₙ p/q; r = p modℕ q; t = p divℕ q in ℚ.*<* (begin-strict
+    greater : p/q ℚ.< (+ 1 ℤ.+ (↥ p/q /ℕ ↧ₙ p/q)) / 1
+    greater = let p = ↥ p/q; q = ↧ₙ p/q; r = p %ℕ q; t = p /ℕ q in ℚ.*<* (begin-strict
       p ℤ.* + 1           ≡⟨ trans (ℤP.*-identityʳ p) (a≡a%ℕn+[a/ℕn]*n p q) ⟩
       + r ℤ.+ t ℤ.* + q   <⟨ ℤP.+-monoˡ-< (t ℤ.* (+ q)) (ℤ.+<+ (n%ℕd<d p q)) ⟩
       + q ℤ.+ t ℤ.* + q   ≡⟨ solve 2 (λ q t -> q ⊕ t ⊗ q ⊜ (Κ (+ 1) ⊕ t) ⊗ q) _≡_.refl (+ q) t ⟩
       (+ 1 ℤ.+ t) ℤ.* + q  ∎)
 
-    least : ∀ (n : ℤ) -> p/q ℚ.< n / 1 -> + 1 ℤ.+ (↥ p/q divℕ ↧ₙ p/q) ℤ.≤ n
-    least n p/q<n = ℤP.≮⇒≥ (λ {hyp -> antidensity-ℤ (n ℤ.- (↥ p/q divℕ ↧ₙ p/q) , 0<n-t hyp , n-t<1 hyp)})
+    least : ∀ (n : ℤ) -> p/q ℚ.< n / 1 -> + 1 ℤ.+ (↥ p/q /ℕ ↧ₙ p/q) ℤ.≤ n
+    least n p/q<n = ℤP.≮⇒≥ (λ {hyp -> antidensity-ℤ (n ℤ.- (↥ p/q /ℕ ↧ₙ p/q) , 0<n-t hyp , n-t<1 hyp)})
       where
-        0<n-t : n ℤ.< + 1 ℤ.+ (↥ p/q divℕ ↧ₙ p/q) -> + 0 ℤ.< n ℤ.- (↥ p/q divℕ ↧ₙ p/q)
-        0<n-t hyp = let p = ↥ p/q; q = ↧ₙ p/q; r = p modℕ q; t = p divℕ q in ℤP.*-cancelʳ-<-nonNeg (+ q) (begin-strict
+        0<n-t : n ℤ.< + 1 ℤ.+ (↥ p/q /ℕ ↧ₙ p/q) -> + 0 ℤ.< n ℤ.- (↥ p/q /ℕ ↧ₙ p/q)
+        0<n-t hyp = let p = ↥ p/q; q = ↧ₙ p/q; r = p %ℕ q; t = p /ℕ q in ℤP.*-cancelʳ-<-nonNeg (+ q) (begin-strict
           + 0 ℤ.* + q                     ≡⟨ ℤP.*-zeroˡ (+ q) ⟩
           + 0                             ≤⟨ ℤ.+≤+ ℕ.z≤n ⟩
           + r                             ≡⟨ solve 3 (λ r t q -> r ⊜ (r ⊕ t ⊗ q ⊖ t ⊗ q)) _≡_.refl (+ r) t (+ q) ⟩
@@ -164,8 +164,8 @@ least-ℤ>ℚ p/q = let p = ↥ p/q; q = ↧ₙ p/q; r = p modℕ q; t = p div�
           n ℤ.* + q ℤ.- t ℤ.* + q         ≡⟨ solve 3 (λ n t q -> n ⊗ q ⊖ t ⊗ q ⊜ (n ⊖ t) ⊗ q) _≡_.refl n t (+ q) ⟩
           (n ℤ.- t) ℤ.* + q                ∎)
 
-        n-t<1 : n ℤ.< + 1 ℤ.+ (↥ p/q divℕ ↧ₙ p/q) -> n ℤ.- (↥ p/q divℕ ↧ₙ p/q) ℤ.< + 1
-        n-t<1 hyp = let t = ↥ p/q divℕ ↧ₙ p/q in begin-strict
+        n-t<1 : n ℤ.< + 1 ℤ.+ (↥ p/q /ℕ ↧ₙ p/q) -> n ℤ.- (↥ p/q /ℕ ↧ₙ p/q) ℤ.< + 1
+        n-t<1 hyp = let t = ↥ p/q /ℕ ↧ₙ p/q in begin-strict
           n ℤ.- t         <⟨ ℤP.+-monoˡ-< (ℤ.- t) hyp ⟩
           + 1 ℤ.+ t ℤ.- t ≡⟨ solve 1 (λ t -> Κ (+ 1) ⊕ t ⊖ t ⊜ Κ (+ 1)) _≡_.refl t ⟩
           + 1              ∎
